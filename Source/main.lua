@@ -15,11 +15,11 @@ local botLeft = geo.point.new(0, h)
 local botRight = geo.point.new(w, h)
 local center = geo.point.new(w/2, h/2)
 
-local top = geo.lineSegment.new(0, 0, w, 0)
-local bottom = geo.lineSegment.new(0, h, w, h)
-local left = geo.lineSegment.new(0, 0, 0, h)
-local right = geo.lineSegment.new(w, 0, w, h)
-local edges = {top, right, bottom, left}
+local topEdge = geo.lineSegment.new(0, 0, w, 0)
+local bottomEdge = geo.lineSegment.new(0, h, w, h)
+local leftEdge = geo.lineSegment.new(0, 0, 0, h)
+local rightEdge = geo.lineSegment.new(w, 0, w, h)
+local edges = {topEdge, rightEdge, bottomEdge, leftEdge}
 
 function spinner(a)
   return geo.lineSegment.new(
@@ -59,45 +59,106 @@ function playdate.update()
         end
     end
 
-    local edges = {top, right, bottom, left}
     table.sort(edgePts[1], function(a, b) return a.x < b.x end)
     table.sort(edgePts[2], function(a, b) return a.y < b.y end)
     table.sort(edgePts[3], function(a, b) return b.x < a.x end)
     table.sort(edgePts[4], function(a, b) return b.y < a.y end)
+    topPts = edgePts[1]
+    rightPts = edgePts[2]
+    bottomPts = edgePts[3]
+    leftPts = edgePts[4]
 
-    wrapPts = {}
-    table.insert(wrapPts, topLeft)
-    for i = 1, #edgePts[1] do
-        table.insert(wrapPts, edgePts[1][i])
-    end
-    table.insert(wrapPts, topRight)
-    for i = 1, #edgePts[2] do
-        table.insert(wrapPts, edgePts[2][i])
-    end
-    table.insert(wrapPts, botRight)
-    for i = 1, #edgePts[3] do
-        table.insert(wrapPts, edgePts[3][i])
-    end
-    table.insert(wrapPts, botLeft)
-    for i = 1, #edgePts[4] do
-        table.insert(wrapPts, edgePts[4][i])
-    end
-    -- repeated for wrapping
-    table.insert(wrapPts, topLeft)
+    firstTop = topPts[1]
+    lastTop = topPts[#topPts]
+    firstRight = rightPts[1]
+    lastRight = rightPts[#rightPts]
+    firstBottom = bottomPts[1]
+    lastBottom = bottomPts[#bottomPts]
+    firstLeft = leftPts[1]
+    lastLeft = leftPts[#leftPts]
 
-    --[[
-    for i = 1, #wrapPts -1 do
-        pt = wrapPts[i]
+    wedges = {}
+
+    -- polygon containing topLeft as the first corner
+    if firstTop then --if any lines are intersecting the top edge
+        if lastLeft then
+            wedge = geo.polygon.new(firstTop, topLeft, lastLeft, center)
+            wedge:close()
+            table.insert(wedges, wedge)
+        end
+    else
+        wedge = geo.polygon.new(firstRight, topRight, topLeft, lastLeft, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
+    -- polygon containing topRight as the first corner
+    if firstRight then --if any lines are intersecting the right edge
+        if lastTop then
+            wedge = geo.polygon.new(firstRight, topRight, lastTop, center)
+            wedge:close()
+            table.insert(wedges, wedge)
+        end
+    else
+        wedge = geo.polygon.new(firstBottom, botRight, topRight, lastTop, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
+    -- polygon containing botRight as the first corner
+    if firstBottom then --if any lines are intersecting the bottom edge
+        if lastRight then
+            wedge = geo.polygon.new(firstBottom, botRight, lastRight, center)
+            wedge:close()
+            table.insert(wedges, wedge)
+        end
+    else
+        wedge = geo.polygon.new(firstLeft, botLeft, botRight, lastRight, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
+    -- polygon containing botLeft as the first corner
+    if firstLeft then --if any lines are intersecting the left edge
+        if lastBottom then
+            wedge = geo.polygon.new(firstLeft, botLeft, lastBottom, center)
+            wedge:close()
+            table.insert(wedges, wedge)
+        end
+    else
+        wedge = geo.polygon.new(firstTop, topLeft, botLeft, lastBottom, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
+    debugPts = {}
+    table.insert(debugPts, topLeft)
+    for i = 1, #topPts do
+        table.insert(debugPts, topPts[i])
+    end
+    table.insert(debugPts, topRight)
+    for i = 1, #rightPts do
+        table.insert(debugPts, rightPts[i])
+    end
+    table.insert(debugPts, botRight)
+    for i = 1, #bottomPts do
+        table.insert(debugPts, bottomPts[i])
+    end
+    table.insert(debugPts, botLeft)
+    for i = 1, #leftPts do
+        table.insert(debugPts, leftPts[i])
+    end
+
+    for i = 1, #debugPts do
+        pt = debugPts[i]
         gfx.fillRect(pt.x - 5, pt.y - 5, 10, 10)
     end
-    --]]
 
-    for i = 1, #wrapPts - 1 do
-        wedge = geo.polygon.new(wrapPts[i], wrapPts[i + 1], center)
-        wedge:close()
+    for i = 1, #wedges do
+        wedge = wedges[i]
         gfx.fillPolygon(wedge)
         gfx.pushContext()
-        gfx.setDitherPattern(i/#wrapPts)
+        gfx.setDitherPattern(i/#wedges)
         gfx.fillPolygon(wedge)
         gfx.popContext()
     end
