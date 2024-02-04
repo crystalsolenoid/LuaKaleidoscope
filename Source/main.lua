@@ -1,6 +1,7 @@
 local gfx = playdate.graphics
 local geo = playdate.geometry
 
+playdate.display.setRefreshRate(0); -- 0 means infinite (device max is 50)
 local w = 400
 local h = 240
 local d = 467 -- diagonal
@@ -42,7 +43,6 @@ end
 local crankCounter = 0
 function playdate.update()
     gfx.fillRect(0, 0, 400, 240)
-    --playdate.drawFPS(0,0)
 
     local crank = playdate.getCrankChange()
     crankCounter = crankCounter + crank
@@ -215,4 +215,5 @@ function playdate.update()
         gfx.popContext()
     end
 
+    playdate.drawFPS(5, 5);
 end
