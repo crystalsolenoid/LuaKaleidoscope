@@ -48,10 +48,11 @@ function playdate.update()
     crankCounter = crankCounter + crank
     line1 = spinner(crankCounter)
     line2 = spinner(0.5 * crankCounter + 20)
+    line3 = spinner(0.2 * crankCounter + -10)
 
     edgePts = {{}, {}, {}, {}}
 
-    lines = {line1, line2}
+    lines = {line1, line2, line3}
 
     for l = 1, #lines do
         for i = 1, 4 do
