@@ -7,6 +7,15 @@ local d = 467 -- diagonal
 
 local angle_conversion = 2 * math.pi / 360
 
+images = {
+    playdate.graphics.image.new("images/035nest1.png"),
+    playdate.graphics.image.new("images/021hex0n.png"),
+    playdate.graphics.image.new("images/036noise0.png"),
+    playdate.graphics.image.new("images/042scallops0n.png"),
+    playdate.graphics.image.new("images/047stones1n.png"),
+    playdate.graphics.image.new("images/077flowers0n.png"),
+}
+
 gfx.setColor(gfx.kColorBlack)
 
 local topLeft = geo.point.new(0, 0)
@@ -35,15 +44,10 @@ function playdate.update()
     gfx.fillRect(0, 0, 400, 240)
     --playdate.drawFPS(0,0)
 
-    gfx.pushContext()
-    gfx.setColor(gfx.kColorXOR)
-
     crank = playdate.getCrankChange()
     crankCounter = crankCounter + crank
     line1 = spinner(crankCounter)
     line2 = spinner(0.5 * crankCounter + 20)
-    --gfx.drawLine(line1)
-    --gfx.drawLine(line2)
 
     edgePts = {{}, {}, {}, {}}
 
@@ -149,20 +153,29 @@ function playdate.update()
         table.insert(debugPts, leftPts[i])
     end
 
+    gfx.pushContext()
+    gfx.setColor(gfx.kColorXOR)
     for i = 1, #debugPts do
         pt = debugPts[i]
         gfx.fillRect(pt.x - 5, pt.y - 5, 10, 10)
     end
+    gfx.popContext()
 
     for i = 1, #wedges do
         wedge = wedges[i]
-        gfx.fillPolygon(wedge)
+
+        -- draw a stencil in a wedge shape
+        wedgeImg = gfx.image.new(w, h, gfx.kColorBlack)
+        gfx.pushContext(wedgeImg)
+            gfx.setColor(gfx.kColorWhite)
+            gfx.fillPolygon(wedge)
+        gfx.popContext()
+
+        -- draw a tiled image with that stencil
         gfx.pushContext()
-        gfx.setDitherPattern(i/#wedges)
-        gfx.fillPolygon(wedge)
+            gfx.setStencilImage(wedgeImg)
+            images[i]:drawTiled(0, 0, w, h)
         gfx.popContext()
     end
-
-    gfx.popContext()
 
 end
