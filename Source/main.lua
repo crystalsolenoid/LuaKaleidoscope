@@ -96,6 +96,15 @@ function playdate.update()
         table.insert(wedges, wedge)
     end
 
+    -- polygons exclusively on top
+    for i = 1, #topPts - 1 do
+        local ptA = topPts[i]
+        local ptB = topPts[i + 1]
+        wedge = geo.polygon.new(ptA, ptB, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
     -- polygon containing topRight as the first corner
     if firstRight then --if any lines are intersecting the right edge
         if lastTop then
@@ -105,6 +114,15 @@ function playdate.update()
         end
     else
         wedge = geo.polygon.new(firstBottom, botRight, topRight, lastTop, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
+    -- polygons exclusively on right
+    for i = 1, #rightPts - 1 do
+        local ptA = rightPts[i]
+        local ptB = rightPts[i + 1]
+        wedge = geo.polygon.new(ptA, ptB, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -122,6 +140,15 @@ function playdate.update()
         table.insert(wedges, wedge)
     end
 
+    -- polygons exclusively on bottom
+    for i = 1, #bottomPts - 1 do
+        local ptA = bottomPts[i]
+        local ptB = bottomPts[i + 1]
+        wedge = geo.polygon.new(ptA, ptB, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
     -- polygon containing botLeft as the first corner
     if firstLeft then --if any lines are intersecting the left edge
         if lastBottom then
@@ -131,6 +158,15 @@ function playdate.update()
         end
     else
         wedge = geo.polygon.new(firstTop, topLeft, botLeft, lastBottom, center)
+        wedge:close()
+        table.insert(wedges, wedge)
+    end
+
+    -- polygons exclusively on left
+    for i = 1, #leftPts - 1 do
+        local ptA = leftPts[i]
+        local ptB = leftPts[i + 1]
+        wedge = geo.polygon.new(ptA, ptB, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
