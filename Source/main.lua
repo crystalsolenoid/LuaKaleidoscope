@@ -213,17 +213,7 @@ function playdate.update()
         -- draw a tiled image with that stencil
         gfx.pushContext()
             gfx.setStencilImage(wedgeImg)
-            -- Tried to slowly scroll the image with the motion of the crank
-            -- Only scrolled vertically
-            -- images[i]:drawSampled(0, 0, w, h, center.x, center.y, 1, 0, 0, 1, (crankCounter / (w / 10)) % w, (crankCounter / (h / 5)) % h, 1, 0, true)
             local image = images[i]
-            -- local transform  = playdate.geometry.affineTransform.new()
-            -- local imageWidth, imageHeight = image:getSize()
-            -- transform:rotate(transformCounter % 360, imageWidth / 4, imageHeight / 4)
-            -- transform:translate(transformCounter % imageWidth, transformCounter % imageHeight)
-            -- transform:scale(transformCounter * 0.001)
-            -- local transformedImage = image:transformedImage(transform)
-            -- transformedImage:drawTiled(0, 0, w, h)
             image:drawTiled(0 - transformCounter, 0 - transformCounter, w + transformCounter, h + transformCounter)
         gfx.popContext()
     end
