@@ -199,7 +199,9 @@ function playdate.update()
     end
     gfx.popContext()
 
-    transformCounter = transformCounter + 1
+    -- transformCounter = transformCounter + 1
+    -- Get a continuous sin wave between 0 and 1
+    transformCounter = (math.sin(crankCounter * angle_conversion) + 1) * 0.5
     for i = 1, #wedges do
         local wedge = wedges[i]
 
@@ -214,7 +216,12 @@ function playdate.update()
         gfx.pushContext()
             gfx.setStencilImage(wedgeImg)
             local image = images[i]
-            image:drawTiled(0 - transformCounter, 0 - transformCounter, w + transformCounter, h + transformCounter)
+            image:drawTiled(
+                -- Map 0-1 range to 0-w and 0-h
+                0 - (math.floor(transformCounter * w) % w),
+                0 - (math.floor(transformCounter * h) % h),
+                w + (math.floor(transformCounter * w) % w),
+                h + (math.floor(transformCounter * h) % h))
         gfx.popContext()
     end
 
