@@ -25,10 +25,10 @@ local botLeft = geo.point.new(0, h)
 local botRight = geo.point.new(w, h)
 local center = geo.point.new(w/2, h/2)
 
-local topEdge = geo.lineSegment.new(0, 0, w, 0)
-local bottomEdge = geo.lineSegment.new(0, h, w, h)
-local leftEdge = geo.lineSegment.new(0, 0, 0, h)
-local rightEdge = geo.lineSegment.new(w, 0, w, h)
+local topEdge = geo.lineSegment.new(topLeft.x, topLeft.y, topRight.x, topRight.y)
+local bottomEdge = geo.lineSegment.new(botLeft.x, botLeft.y, botRight.x, botRight.y)
+local leftEdge = geo.lineSegment.new(topLeft.x, topLeft.y, botLeft.x, botLeft.y)
+local rightEdge = geo.lineSegment.new(topRight.x, topRight.y, botRight.x, botRight.y)
 local edges = {topEdge, rightEdge, bottomEdge, leftEdge}
 
 local function spinner(a)
