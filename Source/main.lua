@@ -1,13 +1,14 @@
 local gfx = playdate.graphics
 local geo = playdate.geometry
 
+playdate.display.setRefreshRate(0); -- 0 means infinite (device max is 50)
 local w = 400
 local h = 240
 local d = 467 -- diagonal
 
 local angle_conversion = 2 * math.pi / 360
 
-images = {
+local images = {
     playdate.graphics.image.new("images/035nest1.png"),
     playdate.graphics.image.new("images/021hex0n.png"),
     playdate.graphics.image.new("images/036noise0.png"),
@@ -24,13 +25,13 @@ local botLeft = geo.point.new(0, h)
 local botRight = geo.point.new(w, h)
 local center = geo.point.new(w/2, h/2)
 
-local topEdge = geo.lineSegment.new(0, 0, w, 0)
-local bottomEdge = geo.lineSegment.new(0, h, w, h)
-local leftEdge = geo.lineSegment.new(0, 0, 0, h)
-local rightEdge = geo.lineSegment.new(w, 0, w, h)
+local topEdge = geo.lineSegment.new(topLeft.x, topLeft.y, topRight.x, topRight.y)
+local bottomEdge = geo.lineSegment.new(botLeft.x, botLeft.y, botRight.x, botRight.y)
+local leftEdge = geo.lineSegment.new(topLeft.x, topLeft.y, botLeft.x, botLeft.y)
+local rightEdge = geo.lineSegment.new(topRight.x, topRight.y, botRight.x, botRight.y)
 local edges = {topEdge, rightEdge, bottomEdge, leftEdge}
 
-function spinner(a)
+local function spinner(a)
   return geo.lineSegment.new(
         (d/2) * math.cos(a * angle_conversion) + w/2,
         (d/2) * math.sin(a * angle_conversion) + h/2,
@@ -40,24 +41,24 @@ function spinner(a)
 end
 
 local crankCounter = 0
+local transformCounter = 0;
 function playdate.update()
     gfx.fillRect(0, 0, 400, 240)
-    --playdate.drawFPS(0,0)
 
-    crank = playdate.getCrankChange()
+    local crank = playdate.getCrankChange()
     crankCounter = crankCounter + crank
-    line1 = spinner(crankCounter)
-    line2 = spinner(0.5 * crankCounter + 20)
-    line3 = spinner(0.2 * crankCounter + -10)
+    local line1 = spinner(crankCounter)
+    local line2 = spinner(0.5 * crankCounter + 20)
+    local line3 = spinner(0.2 * crankCounter + -10)
 
-    edgePts = {{}, {}, {}, {}}
+    local edgePts = {{}, {}, {}, {}}
 
-    lines = {line1, line2, line3}
+    local lines = {line1, line2, line3}
 
     for l = 1, #lines do
         for i = 1, 4 do
-            edge = edges[i]
-            inter, pt = lines[l]:intersectsLineSegment(edge)
+            local edge = edges[i]
+            local inter, pt = lines[l]:intersectsLineSegment(edge)
             if inter then
                 edgePts[i][#edgePts[i] + 1] = pt
             end
@@ -68,31 +69,31 @@ function playdate.update()
     table.sort(edgePts[2], function(a, b) return a.y < b.y end)
     table.sort(edgePts[3], function(a, b) return b.x < a.x end)
     table.sort(edgePts[4], function(a, b) return b.y < a.y end)
-    topPts = edgePts[1]
-    rightPts = edgePts[2]
-    bottomPts = edgePts[3]
-    leftPts = edgePts[4]
+    local topPts = edgePts[1]
+    local rightPts = edgePts[2]
+    local bottomPts = edgePts[3]
+    local leftPts = edgePts[4]
 
-    firstTop = topPts[1]
-    lastTop = topPts[#topPts]
-    firstRight = rightPts[1]
-    lastRight = rightPts[#rightPts]
-    firstBottom = bottomPts[1]
-    lastBottom = bottomPts[#bottomPts]
-    firstLeft = leftPts[1]
-    lastLeft = leftPts[#leftPts]
+    local firstTop = topPts[1]
+    local lastTop = topPts[#topPts]
+    local firstRight = rightPts[1]
+    local lastRight = rightPts[#rightPts]
+    local firstBottom = bottomPts[1]
+    local lastBottom = bottomPts[#bottomPts]
+    local firstLeft = leftPts[1]
+    local lastLeft = leftPts[#leftPts]
 
-    wedges = {}
+    local wedges = {}
 
     -- polygon containing topLeft as the first corner
     if firstTop then --if any lines are intersecting the top edge
         if lastLeft then
-            wedge = geo.polygon.new(firstTop, topLeft, lastLeft, center)
+            local wedge = geo.polygon.new(firstTop, topLeft, lastLeft, center)
             wedge:close()
             table.insert(wedges, wedge)
         end
     else
-        wedge = geo.polygon.new(firstRight, topRight, topLeft, lastLeft, center)
+        local wedge = geo.polygon.new(firstRight, topRight, topLeft, lastLeft, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -101,7 +102,7 @@ function playdate.update()
     for i = 1, #topPts - 1 do
         local ptA = topPts[i]
         local ptB = topPts[i + 1]
-        wedge = geo.polygon.new(ptA, ptB, center)
+        local wedge = geo.polygon.new(ptA, ptB, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -109,12 +110,12 @@ function playdate.update()
     -- polygon containing topRight as the first corner
     if firstRight then --if any lines are intersecting the right edge
         if lastTop then
-            wedge = geo.polygon.new(firstRight, topRight, lastTop, center)
+            local wedge = geo.polygon.new(firstRight, topRight, lastTop, center)
             wedge:close()
             table.insert(wedges, wedge)
         end
     else
-        wedge = geo.polygon.new(firstBottom, botRight, topRight, lastTop, center)
+        local wedge = geo.polygon.new(firstBottom, botRight, topRight, lastTop, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -123,7 +124,7 @@ function playdate.update()
     for i = 1, #rightPts - 1 do
         local ptA = rightPts[i]
         local ptB = rightPts[i + 1]
-        wedge = geo.polygon.new(ptA, ptB, center)
+        local wedge = geo.polygon.new(ptA, ptB, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -131,12 +132,12 @@ function playdate.update()
     -- polygon containing botRight as the first corner
     if firstBottom then --if any lines are intersecting the bottom edge
         if lastRight then
-            wedge = geo.polygon.new(firstBottom, botRight, lastRight, center)
+            local wedge = geo.polygon.new(firstBottom, botRight, lastRight, center)
             wedge:close()
             table.insert(wedges, wedge)
         end
     else
-        wedge = geo.polygon.new(firstLeft, botLeft, botRight, lastRight, center)
+        local wedge = geo.polygon.new(firstLeft, botLeft, botRight, lastRight, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -145,7 +146,7 @@ function playdate.update()
     for i = 1, #bottomPts - 1 do
         local ptA = bottomPts[i]
         local ptB = bottomPts[i + 1]
-        wedge = geo.polygon.new(ptA, ptB, center)
+        local wedge = geo.polygon.new(ptA, ptB, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -153,12 +154,12 @@ function playdate.update()
     -- polygon containing botLeft as the first corner
     if firstLeft then --if any lines are intersecting the left edge
         if lastBottom then
-            wedge = geo.polygon.new(firstLeft, botLeft, lastBottom, center)
+            local wedge = geo.polygon.new(firstLeft, botLeft, lastBottom, center)
             wedge:close()
             table.insert(wedges, wedge)
         end
     else
-        wedge = geo.polygon.new(firstTop, topLeft, botLeft, lastBottom, center)
+        local wedge = geo.polygon.new(firstTop, topLeft, botLeft, lastBottom, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
@@ -167,12 +168,12 @@ function playdate.update()
     for i = 1, #leftPts - 1 do
         local ptA = leftPts[i]
         local ptB = leftPts[i + 1]
-        wedge = geo.polygon.new(ptA, ptB, center)
+        local wedge = geo.polygon.new(ptA, ptB, center)
         wedge:close()
         table.insert(wedges, wedge)
     end
 
-    debugPts = {}
+    local debugPts = {}
     table.insert(debugPts, topLeft)
     for i = 1, #topPts do
         table.insert(debugPts, topPts[i])
@@ -193,16 +194,19 @@ function playdate.update()
     gfx.pushContext()
     gfx.setColor(gfx.kColorXOR)
     for i = 1, #debugPts do
-        pt = debugPts[i]
+        local pt = debugPts[i]
         gfx.fillRect(pt.x - 5, pt.y - 5, 10, 10)
     end
     gfx.popContext()
 
+    -- transformCounter = transformCounter + 1
+    -- Get a continuous sin wave between 0 and 1
+    transformCounter = (math.sin(crankCounter * angle_conversion) + 1) * 0.5
     for i = 1, #wedges do
-        wedge = wedges[i]
+        local wedge = wedges[i]
 
         -- draw a stencil in a wedge shape
-        wedgeImg = gfx.image.new(w, h, gfx.kColorBlack)
+        local wedgeImg = gfx.image.new(w, h, gfx.kColorBlack)
         gfx.pushContext(wedgeImg)
             gfx.setColor(gfx.kColorWhite)
             gfx.fillPolygon(wedge)
@@ -211,8 +215,15 @@ function playdate.update()
         -- draw a tiled image with that stencil
         gfx.pushContext()
             gfx.setStencilImage(wedgeImg)
-            images[i]:drawTiled(0, 0, w, h)
+            local image = images[i]
+            image:drawTiled(
+                -- Map 0-1 range to 0-w and 0-h
+                0 - (math.floor(transformCounter * w) % w),
+                0 - (math.floor(transformCounter * h) % h),
+                w + (math.floor(transformCounter * w) % w),
+                h + (math.floor(transformCounter * h) % h))
         gfx.popContext()
     end
 
+    playdate.drawFPS(5, 5);
 end
